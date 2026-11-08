@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1E5E5A">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icono-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Subastas">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>Subastas Barcelona-Girona</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: cabecera con periodo y botón de búsqueda; franja de filtros; lista de fichas de subasta (expediente a la izquierda, descripción al centro, acciones a la derecha) */
+:root{
+  --bg:#F2F4F3; --surface:#FFFFFF; --ink:#15212A; --muted:#5A6870; --line:#D7DEDC;
+  --accent:#1E5E5A; --accent-ink:#FFFFFF; --accent-soft:#DFEDEB;
+  --ok:#2C6A39; --ok-soft:#E1F0E3; --warn:#8F5600; --warn-soft:#FAEED6; --bad:#A1352A; --bad-soft:#F7E2DF;
+  --f-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1619; --surface:#172126; --ink:#E4EBEA; --muted:#97A6AB; --line:#2A383E;
+  --accent:#6FC2B9; --accent-ink:#06211F; --accent-soft:#183634;
+  --ok:#7CCB8A; --ok-soft:#173322; --warn:#E8B45C; --warn-soft:#3A2B10; --bad:#F08C80; --bad-soft:#3D1B17;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1619; --surface:#172126; --ink:#E4EBEA; --muted:#97A6AB; --line:#2A383E;
+  --accent:#6FC2B9; --accent-ink:#06211F; --accent-soft:#183634;
+  --ok:#7CCB8A; --ok-soft:#173322; --warn:#E8B45C; --warn-soft:#3A2B10; --bad:#F08C80; --bad-soft:#3D1B17;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.75rem;line-height:1.1;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;font-size:.92rem}
+.top{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.label{font-family:var(--f-display);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.period{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;color:var(--ink);font:500 .9rem var(--f-body);padding:8px 12px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.custom{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:7px 10px;min-width:0}
+input[type=date]{padding:6px 8px}
+button.primary{font:600 .95rem var(--f-body);background:var(--accent);color:var(--accent-ink);border:0;border-radius:var(--r);padding:9px 16px;cursor:pointer}
+button.ghost{font:500 .88rem var(--f-body);background:transparent;color:var(--accent);border:1px solid var(--line);border-radius:var(--r);padding:7px 12px;cursor:pointer}
+button:disabled{opacity:.55;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.status{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.9rem;color:var(--muted);min-height:1.5em}
+.bar{height:4px;flex:1 1 160px;max-width:260px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.notice{border:1px solid var(--line);border-left:3px solid var(--warn);background:var(--surface);padding:10px 14px;border-radius:var(--r);font-size:.92rem}
+.notice.err{border-left-color:var(--bad)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button{font:600 1rem var(--f-display);letter-spacing:.01em;background:transparent;color:var(--muted);border:0;border-bottom:3px solid transparent;padding:10px 14px 9px;margin-bottom:-1px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs .n{font:500 .85rem var(--f-body);color:var(--muted);margin-left:6px;font-variant-numeric:tabular-nums}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.filters .f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.filters .wide{grid-column:span 2}
+@media (max-width:560px){.filters .wide{grid-column:auto}}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:500 .85rem var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.chip .n{color:var(--muted);font-variant-numeric:tabular-nums;margin-left:4px}
+.summary{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;justify-content:space-between}
+.summary .counts{font-variant-numeric:tabular-nums}
+.summary b{font-family:var(--f-display);font-size:1.25rem}
+.list{display:flex;flex-direction:column;gap:10px}
+.row{display:grid;grid-template-columns:200px minmax(0,1fr) 190px;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+@media (max-width:820px){.row{grid-template-columns:1fr}}
+.where{display:flex;flex-direction:column;gap:4px;min-width:0}
+.loc{font-family:var(--f-display);font-weight:600;font-size:1.12rem;line-height:1.2}
+.loc.none{color:var(--muted);font-weight:500;font-size:.95rem}
+.meta{color:var(--muted);font-size:.85rem}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--accent-soft);color:var(--ink)}
+.desc{min-width:0}
+.desc p{margin:0;overflow-wrap:anywhere;white-space:pre-line}
+.desc p.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.more{background:none;border:0;color:var(--accent);font:500 .85rem var(--f-body);padding:4px 0 0;cursor:pointer}
+.also{font-size:.82rem;color:var(--muted);margin-top:6px}
+.side{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.code{font-family:var(--f-mono);font-size:.8rem;overflow-wrap:anywhere}
+.pill{font-size:.78rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.fin{font-size:.85rem;font-variant-numeric:tabular-nums}
+.fin.soon{color:var(--warn);font-weight:600}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.links a{font:600 .85rem var(--f-body);color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:var(--r);padding:5px 10px}
+.links a:hover{border-color:var(--accent)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:28px 20px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.empty h2{font-family:var(--f-display);font-size:1.2rem;margin:0}
+.empty ul{margin:0;padding-left:1.2em;color:var(--muted)}
+.foot{color:var(--muted);font-size:.82rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Subastas Barcelona-Girona</h1>
+      <p class="sub">Subastas del Portal de Subastas del BOE: inmuebles de la Cerdanya, Barcelona, Martorell, Sitges y Vilanova i la Geltrú, y bienes muebles de las provincias de Barcelona y Girona. Se actualiza cada día.</p>
+    </div>
+    <div class="period">
+      <div class="f" style="display:flex;flex-direction:column;gap:4px">
+        <span class="label" id="lblPeriodo">Publicadas en</span>
+        <div class="seg" role="group" aria-labelledby="lblPeriodo" id="seg">
+          <button type="button" data-p="prev" id="pPrev">Mes anterior</button>
+          <button type="button" data-p="this" id="pThis">Este mes</button>
+          <button type="button" data-p="30" id="p30">Últimos 30 días</button>
+          <button type="button" data-p="custom" id="pCustom">Fechas…</button>
+        </div>
+      </div>
+      <div class="custom" id="customBox" hidden>
+        <label class="label" for="dFrom">Desde</label><input type="date" id="dFrom">
+        <label class="label" for="dTo">Hasta</label><input type="date" id="dTo">
+      </div>
+    </div>
+  </header>
+
+  <div class="status" id="status" aria-live="polite"></div>
+  <div id="notice"></div>
+
+  <nav class="tabs" role="tablist" aria-label="Clase de bienes" id="tabs">
+    <button type="button" role="tab" id="tabInm" data-tab="inm">Inmuebles en mis zonas<span class="n" id="nInm"></span></button>
+    <button type="button" role="tab" id="tabMue" data-tab="mue">Bienes muebles<span class="n" id="nMue"></span></button>
+  </nav>
+
+  <section class="filters" id="filters" aria-label="Filtros">
+    <div class="f" style="grid-column:1/-1" id="boxZona">
+      <span class="label" id="lblZona">Zona</span>
+      <div class="chips" role="group" aria-labelledby="lblZona" id="fZona"></div>
+    </div>
+    <div class="f">
+      <label class="label" for="fProv">Provincia</label>
+      <select id="fProv"><option value="">Todas</option></select>
+    </div>
+    <div class="f">
+      <label class="label" for="fEstado">Estado</label>
+      <select id="fEstado"><option value="">Todos</option></select>
+    </div>
+    <div class="f">
+      <label class="label" for="fSort">Ordenar por</label>
+      <select id="fSort">
+        <option value="fin">Fin más próximo</option>
+        <option value="mail">Correo más reciente</option>
+        <option value="loc">Localidad (A-Z)</option>
+        <option value="m2">Superficie (mayor)</option>
+      </select>
+    </div>
+    <div class="f" style="grid-column:1/-1" id="boxMtipo" hidden>
+      <span class="label" id="lblMtipo">Tipo de bien mueble (toda la provincia de Barcelona y de Girona)</span>
+      <div class="chips" role="group" aria-labelledby="lblMtipo" id="fMtipo"></div>
+    </div>
+    <div class="f wide" id="boxTipo">
+      <span class="label" id="lblTipo">Tipo de bien</span>
+      <div class="chips" role="group" aria-labelledby="lblTipo" id="fTipo"></div>
+    </div>
+    <div class="f wide">
+      <label class="label" for="fQ">Buscar en la descripción</label>
+      <input id="fQ" type="search" placeholder="vivienda, garaje, calle, referencia…" autocomplete="off">
+    </div>
+  </section>
+
+  <div class="summary">
+    <div class="counts" id="counts"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="ghost" id="btnClear" type="button">Quitar filtros</button>
+      <button class="ghost" id="btnCsv" type="button" hidden>Descargar CSV</button>
+    </div>
+  </div>
+
+  <main class="list" id="list"></main>
+  <button class="ghost" id="btnMore" type="button" hidden>Mostrar más</button>
+
+  <p class="foot">Zonas: Cerdanya (los 11 municipios gerundenses: Alp, Bolvir, Das, Fontanals de Cerdanya, Ger, Guils de Cerdanya, Isòvol, Llívia, Meranges, Puigcerdà y Urús), Barcelona, Martorell, Sitges y Vilanova i la Geltrú. Los inmuebles de otros municipios no se incluyen. Los bienes muebles (vehículos, embarcaciones y otros) van en su propia pestaña y son de toda la provincia de Barcelona y de Girona, porque los avisos no dicen dónde están. El municipio de los inmuebles se deduce del texto de cada aviso. Cuando el aviso no lo menciona, la subasta aparece en «Sin localidad en el aviso» para que la revises en el BOE, cuya ficha del bien siempre lo indica. Una subasta que aparece en varios avisos se muestra una sola vez, con su estado más reciente. El estado y la fecha de fin son los del último aviso: confírmalos siempre en el BOE.</p>
+</div>
+
+<script>
+const MUNICIPIOS = {"BARCELONA": ["Abrera", "Aguilar de Segarra", "Aiguafreda", "Alella", "Alpens", "L'Ametlla del Vallès", "Arenys de Mar", "Arenys de Munt", "Argentona", "Argençola", "Artés", "Avinyonet del Penedès", "Avinyó", "Avià", "Badalona", "Badia del Vallès", "Bagà", "Balenyà", "Balsareny", "Barberà del Vallès", "Barcelona", "Begues", "Bellprat", "Berga", "Bigues i Riells", "Borredà", "El Bruc", "El Brull", "Les Cabanyes", "Cabrera d'Anoia", "Cabrera de Mar", "Cabrils", "Calaf", "Calders", "Caldes d'Estrac", "Caldes de Montbui", "Calella", "Calldetenes", "Callús", "Calonge de Segarra", "Campins", "Canet de Mar", "Canovelles", "Canyelles", "Capellades", "Capolat", "Cardedeu", "Cardona", "Carme", "Casserres", "Castell de l'Areny", "Castellar de n'Hug", "Castellar del Riu", "Castellar del Vallès", "Castellbell i el Vilar", "Castellbisbal", "Castellcir", "Castelldefels", "Castellet i la Gornal", "Castellfollit de Riubregós", "Castellfollit del Boix", "Castellgalí", "Castellnou de Bages", "Castellolí", "Castellterçol", "Castellví de Rosanes", "Castellví de la Marca", "Centelles", "Cercs", "Cerdanyola del Vallès", "Cervelló", "Collbató", "Collsuspina", "Copons", "Corbera de Llobregat", "Cornellà de Llobregat", "Cubelles", "Cànoves i Samalús", "Dosrius", "Esparreguera", "Esplugues de Llobregat", "L'Espunyola", "L'Esquirol", "L'Estany", "Figaró-Montmany", "Fogars de Montclús", "Fogars de la Selva", "Folgueroles", "Fonollosa", "Font-rubí", "Les Franqueses del Vallès", "Fígols", "Gaià", "Gallifa", "La Garriga", "Gavà", "Gelida", "Gironella", "Gisclareny", "La Granada", "Granera", "Granollers", "Gualba", "Guardiola de Berguedà", "Gurb", "L'Hospitalet de Llobregat", "Els Hostalets de Pierola", "Igualada", "Jorba", "La Llacuna", "La Llagosta", "Llinars del Vallès", "Lliçà d'Amunt", "Lliçà de Vall", "Lluçà", "Malgrat de Mar", "Malla", "Manlleu", "Manresa", "Marganell", "Martorell", "Martorelles", "Les Masies de Roda", "Les Masies de Voltregà", "El Masnou", "Masquefa", "Matadepera", "Mataró", "Mediona", "Moià", "Molins de Rei", "Mollet del Vallès", "Monistrol de Calders", "Monistrol de Montserrat", "Montcada i Reixac", "Montclar", "Montesquiu", "Montgat", "Montmajor", "Montmaneu", "Montmeló", "Montornès del Vallès", "Montseny", "Muntanyola", "Mura", "Navarcles", "Navàs", "La Nou de Berguedà", "Olesa de Bonesvalls", "Olesa de Montserrat", "Olivella", "Olost", "Olvan", "Olèrdola", "Oristà", "Orpí", "Orís", "Pacs del Penedès", "Palafolls", "Palau-solità i Plegamans", "Pallejà", "La Palma de Cervelló", "El Papiol", "Parets del Vallès", "Perafita", "Piera", "Pineda de Mar", "El Pla del Penedès", "La Pobla de Claramunt", "La Pobla de Lillet", "Polinyà", "El Pont de Vilomara i Rocafort", "Pontons", "El Prat de Llobregat", "Prats de Lluçanès", "Els Prats de Rei", "Premià de Dalt", "Premià de Mar", "Puig-reig", "Puigdàlber", "Pujalt", "La Quar", "Rajadell", "Rellinars", "Ripollet", "La Roca del Vallès", "Roda de Ter", "Rubió", "Rubí", "Rupit i Pruit", "Sabadell", "Sagàs", "Saldes", "Sallent", "Sant Adrià de Besòs", "Sant Agustí de Lluçanès", "Sant Andreu de Llavaneres", "Sant Andreu de la Barca", "Sant Antoni de Vilamajor", "Sant Bartomeu del Grau", "Sant Boi de Llobregat", "Sant Boi de Lluçanès", "Sant Cebrià de Vallalta", "Sant Celoni", "Sant Climent de Llobregat", "Sant Cugat Sesgarrigues", "Sant Cugat del Vallès", "Sant Esteve Sesrovires", "Sant Esteve de Palautordera", "Sant Feliu Sasserra", "Sant Feliu de Codines", "Sant Feliu de Llobregat", "Sant Fost de Campsentelles", "Sant Fruitós de Bages", "Sant Hipòlit de Voltregà", "Sant Iscle de Vallalta", "Sant Jaume de Frontanyà", "Sant Joan Despí", "Sant Joan de Vilatorrada", "Sant Julià de Cerdanyola", "Sant Julià de Vilatorta", "Sant Just Desvern", "Sant Llorenç Savall", "Sant Llorenç d'Hortons", "Sant Martí Sarroca", "Sant Martí Sesgueioles", "Sant Martí d'Albars", "Sant Martí de Centelles", "Sant Martí de Tous", "Sant Mateu de Bages", "Sant Pere Sallavinera", "Sant Pere de Ribes", "Sant Pere de Riudebitlles", "Sant Pere de Torelló", "Sant Pere de Vilamajor", "Sant Pol de Mar", "Sant Quintí de Mediona", "Sant Quirze Safaja", "Sant Quirze de Besora", "Sant Quirze del Vallès", "Sant Sadurní d'Anoia", "Sant Sadurní d'Osormort", "Sant Salvador de Guardiola", "Sant Vicenç de Castellet", "Sant Vicenç de Montalt", "Sant Vicenç de Torelló", "Sant Vicenç dels Horts", "Santa Cecília de Voltregà", "Santa Coloma de Cervelló", "Santa Coloma de Gramenet", "Santa Eugènia de Berga", "Santa Eulàlia de Riuprimer", "Santa Eulàlia de Ronçana", "Santa Fe del Penedès", "Santa Margarida de Montbui", "Santa Margarida i els Monjos", "Santa Maria d'Oló", "Santa Maria de Besora", "Santa Maria de Martorelles", "Santa Maria de Merlès", "Santa Maria de Miralles", "Santa Maria de Palautordera", "Santa Perpètua de Mogoda", "Santa Susanna", "Santpedor", "Sentmenat", "Seva", "Sitges", "Sobremunt", "Sora", "Subirats", "Súria", "Tagamanent", "Talamanca", "Taradell", "Tavertet", "Tavèrnoles", "Teià", "Terrassa", "Tiana", "Tona", "Tordera", "Torelló", "La Torre de Claramunt", "Torrelavit", "Torrelles de Foix", "Torrelles de Llobregat", "Ullastrell", "Vacarisses", "Vallbona d'Anoia", "Vallcebre", "Vallgorguina", "Vallirana", "Vallromanes", "Veciana", "Vic", "Vilada", "Viladecans", "Viladecavalls", "Vilafranca del Penedès", "Vilalba Sasserra", "Vilanova de Sau", "Vilanova del Camí", "Vilanova del Vallès", "Vilanova i la Geltrú", "Vilassar de Dalt", "Vilassar de Mar", "Vilobí del Penedès", "Viver i Serrateix", "Òdena", "Òrrius"], "GIRONA": ["Agullana", "Aiguaviva", "Albanyà", "Albons", "Alp", "Amer", "Anglès", "Arbúcies", "Argelaguer", "L'Armentera", "Avinyonet de Puigventós", "Banyoles", "Begur", "Bellcaire d'Empordà", "Besalú", "Bescanó", "Beuda", "La Bisbal d'Empordà", "Biure", "Blanes", "Boadella i les Escaules", "Bolvir", "Bordils", "Borrassà", "Breda", "Brunyola i Sant Martí Sapresa", "Bàscara", "Cabanelles", "Cabanes", "Cadaqués", "Caldes de Malavella", "Calonge i Sant Antoni", "Campdevànol", "Campelles", "Campllong", "Camprodon", "Camós", "Canet d'Adri", "Cantallops", "Capmany", "Cassà de la Selva", "Castell-Platja d'Aro", "Castellfollit de la Roca", "Castelló d'Empúries", "La Cellera de Ter", "Celrà", "Cervià de Ter", "Cistella", "Colera", "Colomers", "Cornellà del Terri", "Corçà", "Crespià", "Cruïlles, Monells i Sant Sadurní de l'Heura", "Darnius", "Das", "L'Escala", "Espinelves", "Espolla", "Esponellà", "El Far d'Empordà", "Figueres", "Flaçà", "Foixà", "Fontanals de Cerdanya", "Fontanilles", "Fontcoberta", "Forallac", "Fornells de la Selva", "Fortià", "Garrigoles", "Garriguella", "Garrigàs", "Ger", "Girona", "Gombrèn", "Gualta", "Guils de Cerdanya", "Hostalric", "Isòvol", "Jafre", "La Jonquera", "Juià", "Lladó", "Llagostera", "Llambilles", "Llanars", "Llançà", "Llers", "Lloret de Mar", "Les Llosses", "Llívia", "Madremanya", "Maià de Montcal", "Masarac", "Massanes", "Maçanet de Cabrenys", "Maçanet de la Selva", "Meranges", "Mieres", "Mollet de Peralada", "Molló", "Mont-ras", "Montagut i Oix", "Navata", "Ogassa", "Olot", "Ordis", "Osor", "Palafrugell", "Palamós", "Palau de Santa Eulàlia", "Palau-sator", "Palau-saverdera", "Palol de Revardit", "Pals", "Pardines", "Parlavà", "Pau", "Pedret i Marzà", "La Pera", "Peralada", "Les Planes d'Hostoles", "Planoles", "Pont de Molins", "Pontós", "Porqueres", "El Port de la Selva", "Portbou", "Les Preses", "Puigcerdà", "Quart", "Queralbs", "Rabós", "Regencós", "Ribes de Freser", "Riells i Viabrea", "Ripoll", "Riudarenes", "Riudaura", "Riudellots de la Selva", "Riumors", "Roses", "Rupià", "Sales de Llierca", "Salt", "Sant Andreu Salou", "Sant Aniol de Finestres", "Sant Climent Sescebes", "Sant Feliu de Buixalleu", "Sant Feliu de Guíxols", "Sant Feliu de Pallerols", "Sant Ferriol", "Sant Gregori", "Sant Hilari Sacalm", "Sant Jaume de Llierca", "Sant Joan de Mollet", "Sant Joan de les Abadesses", "Sant Joan les Fonts", "Sant Jordi Desvalls", "Sant Julià de Ramis", "Sant Julià del Llor i Bonmatí", "Sant Llorenç de la Muga", "Sant Martí Vell", "Sant Martí de Llémena", "Sant Miquel de Campmajor", "Sant Miquel de Fluvià", "Sant Mori", "Sant Pau de Segúries", "Sant Pere Pescador", "Santa Coloma de Farners", "Santa Cristina d'Aro", "Santa Llogaia d'Àlguema", "Santa Pau", "Sarrià de Ter", "Saus, Camallera i Llampaies", "La Selva de Mar", "Serinyà", "Serra de Daró", "Setcases", "Sils", "Siurana", "Susqueda", "La Tallada d'Empordà", "Terrades", "Torrent", "Torroella de Fluvià", "Torroella de Montgrí", "Tortellà", "Toses", "Tossa de Mar", "Ullastret", "Ullà", "Ultramort", "Urús", "La Vajol", "La Vall d'en Bas", "La Vall de Bianya", "Vall-llobrega", "Vallfogona de Ripollès", "Ventalló", "Verges", "Vidreres", "Vidrà", "Vila-sacra", "Vilabertran", "Vilablareix", "Viladamat", "Viladasens", "Vilademuls", "Viladrau", "Vilafant", "Vilajuïga", "Vilallonga de Ter", "Vilamacolum", "Vilamalla", "Vilamaniscle", "Vilanant", "Vilaür", "Vilobí d'Onyar", "Vilopriu"]};
+
+// ---------- Utilidades ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clean = s => String(s ?? '').replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n\s*/g,'\n').trim();
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const pad = n => String(n).padStart(2,'0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const fmt = isoS => { if(!isoS) return ''; const [y,m,d] = isoS.split('-'); return `${d}/${m}/${y}`; };
+const store = {
+  get(k, def){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+// Normaliza texto catalán/castellano para comparar nombres de municipio
+function norm(s){
+  let t = ' ' + String(s).toLowerCase().replace(/ñ/g,'ny').replace(/l·l|l\.l/g,'ll')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ') + ' ';
+  t = t.replace(/ (la|el|els|les|los|las|l) /g,' l ').replace(/ (la|el|els|les|los|las|l) /g,' l ')
+       .replace(/ (de|d|del|dels) /g,' d ').replace(/ (de|d|del|dels) /g,' d ')
+       .replace(/ y /g,' i ').replace(/ san /g,' sant ').replace(/ sant /g,' sant ');
+  return t.replace(/\s+/g,' ');
+}
+
+// Nombres en castellano que suelen aparecer en los edictos
+const ALIAS = {
+  'Girona':['Gerona'], 'Lleida':['Lérida'], 'Figueres':['Figueras'], 'Terrassa':['Tarrasa'],
+  'Vilanova i la Geltrú':['Villanueva y Geltrú','Villanueva i la Geltrú'], 'Vilafranca del Penedès':['Villafranca del Panadés','Villafranca del Penedés'],
+  "L'Hospitalet de Llobregat":['Hospitalet','L Hospitalet'], 'Sant Boi de Llobregat':['San Baudilio de Llobregat'],
+  'Cerdanyola del Vallès':['Cerdanyola'], 'Sant Cugat del Vallès':['Sant Cugat'], 'Sant Adrià de Besòs':['San Adrián de Besós'],
+  'Montcada i Reixac':['Moncada y Reixach','Moncada i Reixac'], 'Esplugues de Llobregat':['Esplugas de Llobregat'],
+  'Sant Andreu de la Barca':['San Andrés de la Barca'], 'Sant Vicenç dels Horts':['San Vicente dels Horts','San Vicente de Horts'],
+  'Sant Joan Despí':['San Juan Despí'], 'Sant Feliu de Llobregat':['San Félix de Llobregat'], 'Molins de Rei':['Molins de Rey'],
+  'Sant Pere de Ribes':['San Pedro de Ribas'], 'Sant Sadurní d\'Anoia':['San Sadurní de Noya'], 'Vic':['Vich'],
+  'Castelló d\'Empúries':['Castellón de Ampurias'], 'Banyoles':['Bañolas'], 'Roses':['Rosas'], 'Sant Feliu de Guíxols':['San Feliu de Guixols'],
+  'Torroella de Montgrí':['Torroella'], 'La Bisbal d\'Empordà':['La Bisbal'], 'Sant Celoni':['San Celoni'],
+  'Santa Coloma de Gramenet':['Santa Coloma de Gramanet'], 'Sant Quirze del Vallès':['San Quirico del Vallés'],
+  'Sant Fruitós de Bages':['San Fructuoso de Bages'], 'Mollet del Vallès':['Mollet'], 'Montornès del Vallès':['Montornés'],
+  'Palau-solità i Plegamans':['Palau de Plegamans'], 'Sant Pol de Mar':['San Pol de Mar'], 'Premià de Mar':['Premiá de Mar'],
+  'Gavà':['Gavá'], 'Cornellà de Llobregat':['Cornellá de Llobregat'], 'Sant Joan de les Abadesses':['San Juan de las Abadesas'],
+  'Guils de Cerdanya':['Guils'], 'Fontanals de Cerdanya':['Fontanals'], 'Puigcerdà':['Puigcerdá']
+};
+
+// Zonas que interesan. Cerdanya: municipios de la comarca en la provincia de Girona.
+const ZONAS = [
+  {id:'cerdanya', label:'Cerdanya', comarca:'Cerdanya', prov:'Girona',
+   munis:['Alp','Bolvir','Das','Fontanals de Cerdanya','Ger','Guils de Cerdanya','Isòvol','Llívia','Meranges','Puigcerdà','Urús']},
+  {id:'barcelona', label:'Barcelona', comarca:'Barcelonès', prov:'Barcelona', munis:['Barcelona']},
+  {id:'martorell', label:'Martorell', comarca:'Baix Llobregat', prov:'Barcelona', munis:['Martorell']},
+  {id:'sitges', label:'Sitges', comarca:'Garraf', prov:'Barcelona', munis:['Sitges']},
+  {id:'vilanova', label:'Vilanova i la Geltrú', comarca:'Garraf', prov:'Barcelona', munis:['Vilanova i la Geltrú']}
+];
+const ZONA_DE = {};
+for (const z of ZONAS) for (const m of z.munis) ZONA_DE[m] = z;
+// Nombres que también son palabras corrientes: solo cuentan con contexto claro ("en Das", "término de Das")
+const NEED_CONTEXT = new Set(['Das']);
+
+// Índice de municipios -> claves normalizadas
+const MUNI = [];
+for (const prov of Object.keys(MUNICIPIOS)) {
+  for (const name of MUNICIPIOS[prov]) {
+    const keys = new Set();
+    const n = norm(name).trim();
+    keys.add(n);
+    const art = n.match(/^l (.+)$/);
+    if (art && art[1].includes(' ')) keys.add(art[1]); // "Prat de Llobregat" sin artículo; los de una sola palabra exigen artículo
+    for (const a of (ALIAS[name] || [])) keys.add(norm(a).trim());
+    MUNI.push({name, prov, keys:[...keys]});
+  }
+}
+
+const RX_POS = /(termino municipal d|terme municipal d|termino d|terme d|municipio d|municipi d|sit[ao] en|situad[ao] en|ubicad[ao] en|radicad[ao] en|localidad d|poblacion d|poblacio d|edificio en|casa en|finca en|en)\s*$/;
+const RX_STREET = /(calle|carrer|c|cl|avenida|avda|av|avinguda|plaza|pl|placa|paseo|passeig|pg|carretera|ctra|camino|cami|ronda|rambla|travessera|travesia|via|provincia|prov|partido judicial|juzgado|jutjat)( d)?( l)?\s*$/;
+const RX_REG = /(registro|registre)[a-z0-9 ]{0,40}$/;
+
+function detectLocalidad(desc, prov){
+  const t = norm(desc);
+  const hits = [];
+  for (const m of MUNI) {
+    for (const k of m.keys) {
+      let from = 0, i;
+      while ((i = t.indexOf(' ' + k + ' ', from)) !== -1) {
+        hits.push({m, start:i+1, end:i+1+k.length});
+        from = i + 1;
+      }
+    }
+  }
+  // descartar coincidencias contenidas dentro de otra más larga
+  const kept = hits.filter(h => !hits.some(o => o !== h && o.start <= h.start && o.end >= h.end && (o.end - o.start) > (h.end - h.start)));
+  const scored = kept.map(h => {
+    const before = t.slice(Math.max(0, h.start - 60), h.start);
+    let s = 2;
+    if (RX_STREET.test(before)) s = 0;
+    else if (RX_POS.test(before)) s = 3;
+    else if (RX_REG.test(before)) s = 1;
+    if (NEED_CONTEXT.has(h.m.name) && s < 3) s = 0;
+    if (prov && h.m.prov === prov) s += 0.5;
+    return {...h, s};
+  }).filter(h => h.s >= 1);
+  scored.sort((a,b) => b.s - a.s || a.start - b.start);
+  const names = [];
+  for (const h of scored) if (!names.includes(h.m.name)) names.push(h.m.name);
+  return { principal: names[0] || '', otras: names.slice(1, 4), viaRegistro: scored[0] ? scored[0].s < 2 : false };
+}
+
+const RX_VEH = /\b(turismo|motocicleta|ciclomotor|furgoneta|camion|vehiculo|remolque|semirremolque|tractor|autocaravana|caravana|quad|motocicleta)\b/;
+const RX_INM = /\b(urbana|rustica|finca|vivienda|piso|local|nave|parcela|solar|garaje|aparcamiento|parking|trastero|departamento|casa|edificio|terreno|apartamento|duplex|chalet|entidad|inmueble|porcion|participacion indivisa)\b/;
+const SUBTIPOS = [
+  ['Vivienda', /\b(vivienda|piso|casa|apartamento|duplex|chalet|atico|unifamiliar)\b/],
+  ['Local', /\blocal\b/], ['Nave', /\bnave\b/], ['Garaje', /\b(garaje|aparcamiento|parking|plaza d aparcamiento)\b/],
+  ['Trastero', /\btrastero\b/], ['Suelo', /\b(parcela|solar|terreno|rustica|pieza d tierra|finca rustica)\b/]
+];
+function clasificar(desc){
+  const t = norm(desc);
+  const plate = /\b\d{4}\s?[BCDFGHJKLMNPRSTVWXYZ]{3}\b/.test(desc);
+  let tipo = 'otros';
+  if (/\b(urbana|rustica|finca|vivienda|piso|nave|parcela|solar|garaje|trastero|inmueble|departamento)\b/.test(t)) tipo = 'inmueble';
+  else if (plate || RX_VEH.test(t)) tipo = 'vehiculo';
+  else if (RX_INM.test(t)) tipo = 'inmueble';
+  let sub = '';
+  if (tipo === 'inmueble') {
+    let best = Infinity;
+    for (const [lab, rx] of SUBTIPOS) { const m = t.match(rx); if (m && m.index < best) { best = m.index; sub = lab; } }
+  }
+  const sm = desc.match(/superficie[^0-9]{0,60}?(\d{1,3}(?:\.\d{3})+|\d+)(?:\s?[,']\s?(\d+))?\s*(?:metros cuadrados|m2|m²|mts|metros)/i);
+  const m2 = sm ? parseFloat(sm[1].replace(/\./g,'') + (sm[2] ? '.' + sm[2] : '')) : null;
+  return {tipo, sub, m2};
+}
+
+const ORIGEN = {JA:'Judicial', AT:'Agencia Tributaria', SS:'Seguridad Social'};
+function origen(id){ const m = /^SUB-([A-Z]{2})-/.exec(id); return m ? (ORIGEN[m[1]] || 'Código ' + m[1]) : ''; }
+
+function parseEstado(raw){
+  raw = clean(raw).replace(/\n/g,' ');
+  const m = raw.match(/^([^\[]*)(?:\[(.*)\])?/);
+  const estado = (m && m[1] || raw).trim();
+  const br = m && m[2] || '';
+  const d = br.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+a las\s+(\d{1,2}:\d{2}))?/);
+  return { estado, finLabel: br.split(':')[0].trim(), fin: d ? `${d[3]}-${d[2]}-${d[1]}` : '', finHora: d && d[4] || '' };
+}
+function estadoClase(e){ const t = norm(e); if (/celebr/.test(t)) return 'ok'; if (/suspend|cancel|anulad/.test(t)) return 'bad'; if (/proxim|apertura|pendiente/.test(t)) return 'warn'; return ''; }
+
+function safeUrl(u, id){
+  const canon = 'https://subastas.boe.es/detalleSubasta.php?idSub=' + encodeURIComponent(id);
+  return (typeof u === 'string' && /^https:\/\/subastas\.boe\.es\//.test(u)) ? u.replace(/&acc=linkAlertaSub/,'') : canon;
+}
+
+// ---------- Estado de la aplicación ----------
+const PREF_KEY = 'subastas:v4:prefs';
+let emails = {};
+let datosInfo = null;
+let subastas = [];
+const prefs = Object.assign({period:'prev', from:'', to:'', tab:'inm', mtipo:'todos', zona:'mis', prov:'', estado:'', tipo:'inmueble', q:'', sort:'fin'}, store.get(PREF_KEY, {}));
+let shown = 50;
+let busy = false;
+
+function savePrefs(){ store.set(PREF_KEY, prefs); }
+
+function periodRange(){
+  const now = new Date();
+  if (prefs.period === 'prev') {
+    const a = new Date(now.getFullYear(), now.getMonth()-1, 1), b = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {from: iso(a), to: iso(new Date(b - 864e5)), label: `${MESES[a.getMonth()]} de ${a.getFullYear()}`};
+  }
+  if (prefs.period === 'this') {
+    const a = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {from: iso(a), to: iso(now), label: `${MESES[a.getMonth()]} de ${a.getFullYear()}`};
+  }
+  if (prefs.period === '30') return {from: iso(new Date(now - 29*864e5)), to: iso(now), label: 'los últimos 30 días'};
+  const f = prefs.from || iso(new Date(now - 29*864e5)), t = prefs.to || iso(now);
+  return {from: f <= t ? f : t, to: f <= t ? t : f, label: `del ${fmt(f)} al ${fmt(t)}`};
+}
+
+function rebuild(){
+  const {from, to} = periodRange();
+  const map = new Map();
+  const mails = Object.values(emails).filter(e => e.fecha >= from && e.fecha <= to).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  for (const e of mails) {
+    for (const it of e.items) {
+      const prev = map.get(it.id);
+      const st = parseEstado(it.estadoRaw || '');
+      const base = prev || (() => {
+        const desc = it.desc || '';
+        if (it.clase === 'mueble') return { id: it.id, prov: e.prov, desc, clase: 'mueble', principal: '', otras: [], viaRegistro: false, tipo: 'mueble', sub: '', m2: null, mtipo: clasMueble(desc), origen: origen(it.id), fechas: [] };
+        const loc = detectLocalidad(desc, e.prov);
+        return { id: it.id, prov: e.prov, desc, clase: 'inmueble', ...loc, ...clasificar(desc), origen: origen(it.id), fechas: [] };
+      })();
+      Object.assign(base, st, { url: safeUrl(it.url, it.id), ultimoCorreo: e.fecha });
+      if (base.clase === 'inmueble' && it.desc && it.desc.length > (base.desc || '').length) { base.desc = it.desc; Object.assign(base, detectLocalidad(it.desc, e.prov), clasificar(it.desc)); }
+      if (!base.fechas.includes(e.fecha)) base.fechas.push(e.fecha);
+      map.set(it.id, base);
+    }
+  }
+  subastas = [...map.values()];
+  for (const s of subastas) { if (s.clase === 'mueble') { s.zona = 'mueble'; s.comarca = ''; continue; } const z = ZONA_DE[s.principal]; s.zona = z ? z.id : (s.principal ? 'fuera' : 'sin'); s.comarca = z ? z.comarca : ''; }
+  return mails.length;
+}
+
+// ---------- Filtros y pintado ----------
+const TIPOS = [['inmueble','Inmuebles'],['otros','Otros'],['todos','Todos']];
+const MTIPOS = [['todos','Todos'],['vehiculo','Vehículos'],['embarcacion','Embarcaciones'],['otros','Otros bienes']];
+const MTIPO_LAB = {vehiculo:'Vehículo', embarcacion:'Embarcación', otros:'Otros bienes'};
+function clasMueble(desc){
+  const t = norm(desc);
+  if (/\b(buque|buques|embarcacion|barco|velero|yate|lancha)\b/.test(t)) return 'embarcacion';
+  if (/\b\d{4}\s?[BCDFGHJKLMNPRSTVWXYZ]{3}\b/.test(desc) || /\b(tractocamion|matricula)\b/.test(t) || RX_VEH.test(t)) return 'vehiculo';
+  return 'otros';
+}
+function comunes(s, q){
+  return (!prefs.prov || s.prov === prefs.prov) && (!prefs.estado || s.estado === prefs.estado) && (!q || norm(s.desc + ' ' + s.id).includes(q));
+}
+function muebles(){
+  const q = norm(prefs.q).trim();
+  return subastas.filter(s => s.zona === 'mueble' && comunes(s, q));
+}
+
+// Subastas de las zonas (y las que no dicen municipio), antes de aplicar la zona elegida
+function enZonas(){
+  const q = norm(prefs.q).trim();
+  return subastas.filter(s =>
+    s.zona !== 'fuera' && s.zona !== 'mueble' &&
+    (prefs.tipo === 'todos' || s.tipo === prefs.tipo) &&
+    comunes(s, q)
+  );
+}
+function filtered(){
+  let r = prefs.tab === 'mue'
+    ? muebles().filter(s => prefs.mtipo === 'todos' || s.mtipo === prefs.mtipo)
+    : enZonas().filter(s => prefs.zona === 'mis' ? s.zona !== 'sin' : s.zona === prefs.zona);
+  const by = {
+    fin: (a,b) => { const h = iso(new Date()), pa = (a.fin || '9999') < h, pb = (b.fin || '9999') < h;
+      return pa !== pb ? (pa ? 1 : -1) : pa ? b.fin.localeCompare(a.fin) : (a.fin || '9999').localeCompare(b.fin || '9999'); },
+    mail: (a,b) => b.ultimoCorreo.localeCompare(a.ultimoCorreo),
+    loc: (a,b) => (a.comarca || '~').localeCompare(b.comarca || '~', 'ca') || (a.principal || '~').localeCompare(b.principal || '~', 'ca'),
+    m2: (a,b) => (b.m2 || 0) - (a.m2 || 0)
+  }[prefs.sort];
+  return r.sort(by);
+}
+
+function fillOptions(){
+  const provs = [...new Set(subastas.map(s => s.prov).filter(Boolean))].sort();
+  $('#fProv').innerHTML = '<option value="">Todas</option>' + provs.map(p => `<option value="${esc(p)}">${esc(p.charAt(0) + p.slice(1).toLowerCase())}</option>`).join('');
+  $('#fProv').value = provs.includes(prefs.prov) ? prefs.prov : '';
+  const ests = [...new Set(subastas.map(s => s.estado).filter(Boolean))].sort();
+  $('#fEstado').innerHTML = '<option value="">Todos</option>' + ests.map(e => `<option value="${esc(e)}">${esc(e)}</option>`).join('');
+  $('#fEstado').value = ests.includes(prefs.estado) ? prefs.estado : '';
+  // zonas con número de subastas (según los demás filtros)
+  const base = enZonas();
+  const zc = {mis:0, sin:0}; for (const z of ZONAS) zc[z.id] = 0;
+  for (const s of base) { zc[s.zona]++; if (s.zona !== 'sin') zc.mis++; }
+  const opts = [['mis','Todas mis zonas'], ...ZONAS.map(z => [z.id, z.label]), ['sin','Sin localidad en el aviso']];
+  $('#fZona').innerHTML = opts.map(([k,l]) => `<button type="button" class="chip" data-z="${k}" aria-pressed="${prefs.zona === k}">${esc(l)}<span class="n">${zc[k]}</span></button>`).join('');
+  const mu = muebles();
+  const mc = {todos: mu.length, vehiculo:0, embarcacion:0, otros:0};
+  for (const s of mu) mc[s.mtipo]++;
+  $('#fMtipo').innerHTML = MTIPOS.map(([k,l]) => `<button type="button" class="chip" data-m="${k}" aria-pressed="${prefs.mtipo === k}">${l}<span class="n">${mc[k]}</span></button>`).join('');
+  $('#nInm').textContent = zc.mis; $('#nMue').textContent = mu.length;
+  const isM = prefs.tab === 'mue';
+  $('#tabInm').setAttribute('aria-selected', String(!isM)); $('#tabMue').setAttribute('aria-selected', String(isM));
+  $('#boxZona').hidden = isM; $('#boxTipo').hidden = isM; $('#boxMtipo').hidden = !isM;
+  const zs = subastas.filter(s => s.zona !== 'fuera' && s.zona !== 'mueble');
+  const tc = {inmueble:0, vehiculo:0, otros:0, todos:zs.length};
+  for (const s of zs) tc[s.tipo]++;
+  $('#fTipo').innerHTML = TIPOS.map(([k,l]) => `<button type="button" class="chip" data-t="${k}" aria-pressed="${prefs.tipo === k}">${l}<span class="n">${tc[k]}</span></button>`).join('');
+}
+
+function daysTo(isoS){ if (!isoS) return null; const [y,m,d] = isoS.split('-').map(Number); const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(y, m-1, d) - t) / 864e5); }
+
+function rowHtml(s){
+  const dd = daysTo(s.fin);
+  const finTxt = s.fin ? `${esc(s.finLabel || 'Fin')}: ${fmt(s.fin)}${s.finHora ? ' · ' + esc(s.finHora) : ''}` : '';
+  const quedan = dd === null ? '' : dd < 0 ? ' (ya pasada)' : dd === 0 ? ' (hoy)' : ` (en ${dd} día${dd === 1 ? '' : 's'})`;
+  const tipoLab = s.clase === 'mueble' ? MTIPO_LAB[s.mtipo] : s.tipo === 'inmueble' ? (s.sub || 'Inmueble') : s.tipo === 'vehiculo' ? 'Vehículo' : 'Otros bienes';
+  const provLab = s.prov ? s.prov.charAt(0) + s.prov.slice(1).toLowerCase() : '';
+  const plate = s.clase === 'mueble' ? ((s.desc || '').match(/\b\d{4}\s?[BCDFGHJKLMNPRSTVWXYZ]{3}\b/) || [])[0] : '';
+  const long = (s.desc || '').length > 280;
+  return `<article class="row">
+    <div class="where">
+      ${s.clase === 'mueble' ? `<div class="loc">${esc(tipoLab)}</div>` : s.principal ? `<div class="loc">${esc(s.principal)}</div>` : `<div class="loc none">Localidad no indicada en el aviso</div>`}
+      <div class="meta">${esc([s.comarca, s.prov ? s.prov.charAt(0) + s.prov.slice(1).toLowerCase() : ''].filter(Boolean).join(' · '))}${s.principal && s.viaRegistro ? ' · deducida del Registro' : ''}</div>
+      <div class="tags">${s.clase === 'mueble' ? (plate ? `<span class="tag">Matrícula ${esc(plate)}</span>` : '') : `<span class="tag">${esc(tipoLab)}</span>`}${s.m2 ? `<span class="tag">${s.m2.toLocaleString('es-ES')} m²</span>` : ''}</div>
+    </div>
+    <div class="desc">
+      <p class="${long ? 'clamp' : ''}">${esc(s.desc || 'Sin descripción en el aviso.')}</p>
+      ${long ? '<button type="button" class="more">Ver descripción completa</button>' : ''}
+      ${s.otras.length ? `<div class="also">También menciona: ${s.otras.map(esc).join(', ')}</div>` : ''}
+    </div>
+    <div class="side">
+      <span class="code">${esc(s.id)}</span>
+      <span class="meta">${esc(s.origen)}</span>
+      ${dd !== null && dd < 0 ? '<span class="pill">Plazo terminado</span>' : `<span class="pill ${estadoClase(s.estado)}">${esc(s.estado || 'Sin estado')}</span>`}
+      ${finTxt ? `<span class="fin ${dd !== null && dd >= 0 && dd <= 7 ? 'soon' : ''}">${finTxt}${quedan}</span>` : ''}
+      <span class="meta">Aviso${s.fechas.length > 1 ? 's' : ''}: ${s.fechas.map(fmt).join(', ')}</span>
+      <div class="links">
+        <a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Ver anuncio en el BOE ↗</a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  const res = filtered();
+  const {label} = periodRange();
+  const fuera = subastas.filter(s => s.zona === 'fuera').length;
+  const sin = enZonas().filter(s => s.zona === 'sin').length;
+  $('#counts').innerHTML = !subastas.length ? ''
+    : prefs.tab === 'mue'
+    ? `<b>${res.length}</b> bien${res.length === 1 ? '' : 'es'} mueble${res.length === 1 ? '' : 's'} en ${esc(label)} · provincias de Barcelona y Girona`
+    : `<b>${res.length}</b> inmueble${res.length === 1 ? '' : 's'} en ${esc(label)}${sin && prefs.zona !== 'sin' ? ` · ${sin} sin localidad por revisar` : ''} · ${fuera} de otros municipios (ocultos)`;
+  if ($('#btnCsv')) $('#btnCsv').hidden = !res.length;
+  const list = $('#list');
+  if (!subastas.length) {
+    list.innerHTML = `<div class="empty">
+      <h2>${busy ? 'Cargando las subastas…' : 'No hay subastas publicadas en este periodo'}</h2>
+      <p>Prueba con otro periodo. Cada subasta muestra:</p>
+      <ul><li>el municipio y la comarca</li><li>el tipo de inmueble y la superficie, si el aviso la indica</li><li>el estado y la fecha de fin</li><li>el enlace al anuncio en subastas.boe.es</li></ul>
+    </div>`;
+    $('#btnMore').hidden = true; return;
+  }
+  if (!res.length) {
+    list.innerHTML = prefs.tab === 'mue' ? `<div class="empty"><h2>Ningún bien mueble cumple estos filtros</h2><p>Prueba con otro tipo, otro periodo o quita los filtros.</p></div>` : `<div class="empty"><h2>Ninguna subasta de tus zonas cumple estos filtros</h2><p>Prueba con otra zona, el tipo «Todos», otro periodo o quita los filtros.</p></div>`;
+    $('#btnMore').hidden = true; return;
+  }
+  list.innerHTML = res.slice(0, shown).map(rowHtml).join('');
+  $('#btnMore').hidden = res.length <= shown;
+  $('#btnMore').textContent = `Mostrar más (${res.length - shown} restantes)`;
+}
+
+function syncControls(){
+  document.querySelectorAll('#seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === prefs.period)));
+  $('#customBox').hidden = prefs.period !== 'custom';
+  const r = periodRange();
+  $('#dFrom').value = r.from; $('#dTo').value = r.to;
+  $('#pPrev').textContent = (() => { const n = new Date(); const a = new Date(n.getFullYear(), n.getMonth()-1, 1); return MESES[a.getMonth()].charAt(0).toUpperCase() + MESES[a.getMonth()].slice(1) + ' (mes anterior)'; })();
+  $('#fQ').value = prefs.q; $('#fSort').value = prefs.sort;
+}
+
+function refreshView(){ rebuild(); fillOptions(); shown = 50; render(); }
+
+// ---------- Mensajes ----------
+function setStatus(html){ $('#status').innerHTML = html; }
+function setNotice(html, err){ $('#notice').innerHTML = html ? `<div class="notice ${err ? 'err' : ''}">${html}</div>` : ''; }
+
+// ---------- Carga de los datos publicados junto a la página ----------
+async function cargar(){
+  busy = true; render();
+  try {
+    const emb = document.getElementById('datos-embebidos');
+    let d;
+    if (emb) d = JSON.parse(emb.textContent);
+    else { const r = await fetch('datos.json', {cache: 'no-store'}); if (!r.ok) throw new Error('HTTP ' + r.status); d = await r.json(); }
+    datosInfo = d; emails = {};
+    for (const c of (d.correos || [])) {
+      emails[c.gmail] = { id: c.gmail, prov: c.prov, fecha: c.fecha, items: (c.items || []).map(i => ({id: i.id, estadoRaw: i.estado, desc: i.desc, clase: i.clase})) };
+    }
+    const fechas = (d.correos || []).map(c => c.fecha).sort();
+    const act = d.actualizado ? new Date(d.actualizado) : null;
+    setStatus(`Avisos del BOE del ${fmt(d.desde || fechas[0])} al ${fmt(fechas[fechas.length-1])}` + (act && !isNaN(act) ? ` · actualizado el ${pad(act.getDate())}/${pad(act.getMonth()+1)}/${act.getFullYear()} a las ${pad(act.getHours())}:${pad(act.getMinutes())}` : ''));
+  } catch (e) {
+    setNotice('No se han podido cargar las subastas. Recarga la página dentro de unos minutos.', true);
+  } finally {
+    busy = false; refreshView();
+  }
+}
+
+// ---------- CSV ----------
+async function csv(){
+  const rows = filtered();
+  const q = v => '"' + String(v ?? '').replace(/"/g,'""').replace(/\s+/g,' ') + '"';
+  const head = ['Subasta','Provincia','Comarca','Municipio','Tipo','Superficie m2','Estado','Fecha fin','Avisos','Enlace BOE','Descripción'];
+  const body = rows.map(s => [s.id, s.prov, s.comarca, s.principal, s.clase === 'mueble' ? MTIPO_LAB[s.mtipo] : s.tipo === 'inmueble' ? (s.sub || 'Inmueble') : s.tipo, s.m2 ? String(s.m2).replace('.',',') : '', s.estado, fmt(s.fin), s.fechas.map(fmt).join(' '), s.url, s.desc].map(q).join(';'));
+  const data = '\ufeff' + [head.map(q).join(';'), ...body].join('\r\n');
+  const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
+  if (!dl) { setNotice('Esta vista no permite descargar archivos.'); return; }
+  try { await dl.save({filename: `subastas-${periodRange().from}-a-${periodRange().to}.csv`, data}); }
+  catch (e) { if (e && e.code !== 'cancelled' && e.code !== 'declined') setNotice('No se ha podido guardar el CSV.'); }
+}
+
+// ---------- Eventos ----------
+$('#seg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  prefs.period = b.dataset.p; savePrefs(); syncControls(); refreshView();
+  });
+$('#dFrom').addEventListener('change', e => { prefs.from = e.target.value; savePrefs(); refreshView(); });
+$('#dTo').addEventListener('change', e => { prefs.to = e.target.value; savePrefs(); refreshView(); });
+$('#fZona').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.zona = b.dataset.z; savePrefs(); fillOptions(); shown = 50; render(); });
+$('#fQ').addEventListener('input', e => { prefs.q = e.target.value; savePrefs(); fillOptions(); shown = 50; render(); });
+$('#fProv').addEventListener('change', e => { prefs.prov = e.target.value; savePrefs(); fillOptions(); shown = 50; render(); });
+$('#fEstado').addEventListener('change', e => { prefs.estado = e.target.value; savePrefs(); fillOptions(); shown = 50; render(); });
+$('#fSort').addEventListener('change', e => { prefs.sort = e.target.value; savePrefs(); render(); });
+$('#fTipo').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.tipo = b.dataset.t; savePrefs(); fillOptions(); shown = 50; render(); });
+$('#btnClear').addEventListener('click', () => { Object.assign(prefs, {zona:'mis', mtipo:'todos', prov:'', estado:'', tipo:'todos', q:''}); savePrefs(); syncControls(); fillOptions(); shown = 50; render(); });
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.tab = b.dataset.tab; savePrefs(); fillOptions(); shown = 50; render(); });
+$('#fMtipo').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.mtipo = b.dataset.m; savePrefs(); fillOptions(); shown = 50; render(); });
+$('#btnMore').addEventListener('click', () => { shown += 50; render(); });
+$('#btnCsv') && $('#btnCsv').addEventListener('click', csv);
+$('#list').addEventListener('click', e => {
+  const b = e.target.closest('.more'); if (!b) return;
+  const p = b.previousElementSibling; const open = p.classList.toggle('clamp');
+  b.textContent = open ? 'Ver descripción completa' : 'Ver menos';
+});
+
+// ---------- Arranque ----------
+syncControls();
+refreshView();
+cargar();
+(async () => {
+  const dl = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null;
+  if (!dl) $('#btnCsv').remove();
+})();
+</script>
+
+</body></html>

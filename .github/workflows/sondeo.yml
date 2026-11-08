@@ -1,0 +1,29 @@
+# Descarga páginas de ejemplo del Portal de Subastas del BOE para ajustar el lector.
+name: Sondeo del portal del BOE
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sondeo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descargar páginas de ejemplo
+        run: |
+          mkdir -p debug
+          UA="Mozilla/5.0 (consulta diaria de subastas; uso personal)"
+          B="https://subastas.boe.es"
+          curl -sSL -A "$UA" "$B/robots.txt" -o debug/robots.txt || true
+          curl -sSL -A "$UA" "$B/subastas_ava.php" -o debug/formulario.html || true
+          curl -sSL -A "$UA" "$B/subastas_ava.php?campo%5B0%5D=SUBASTA.ORIGEN&dato%5B0%5D=&campo%5B1%5D=SUBASTA.ESTADO&dato%5B1%5D=EJ&campo%5B7%5D=BIEN.COD_PROVINCIA&dato%5B7%5D=08&page_hits=50&sort_field%5B0%5D=SUBASTA.FECHA_FIN&sort_order%5B0%5D=desc&accion=Buscar" -o debug/resultados_08.html || true
+          curl -sSL -A "$UA" "$B/detalleSubasta.php?idSub=SUB-JA-2026-267867" -o debug/detalle_ver1.html || true
+          curl -sSL -A "$UA" "$B/detalleSubasta.php?idSub=SUB-JA-2026-267867&ver=3" -o debug/detalle_ver3.html || true
+          ls -la debug
+      - name: Guardar
+        run: |
+          git config user.name "Actualizador de subastas"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add debug
+          git commit -m "Sondeo del portal del BOE" || echo "sin cambios"
+          git push
